@@ -13,6 +13,7 @@ export const Cake = ({ cake }: cakeProps) => {
       <Link href={`/cakes/${cake.id}`} className="text-sm text-foreground">
         {cake.description}
       </Link>
+      <div>{cake.imageUrl ? <img src={cake.imageUrl} /> : null}</div>
     </CakeLayout>
   );
 };

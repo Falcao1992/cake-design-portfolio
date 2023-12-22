@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 
 export const getLatestCakes = (userId?: string) =>
   prisma.cake.findMany({
+    where: {
+      userId: userId,
+    },
     take: 20,
     orderBy: {
       createdAt: "desc",
