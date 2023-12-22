@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Application
+// Modèle représentant un utilisateur dans l'application
+model User {
+  id            String    @id @default(cuid()) // Identifiant unique généré automatiquement
+  name          String?
+  email         String?   @unique // Adresse e-mail unique
+  emailVerified DateTime?
+  image         String?
+  username      String // @unique pour vérifier si le nom d'utilisateur est unique dans l'application
+  bio           String?
+  link          String?
+  createdAt     DateTime  @default(now())
+
+  // Relations avec d'autres modèles
+  accounts     Account[] // Les comptes associés à l'utilisateur
+  sessions     Session[] // Les sessions associées à l'utilisateur
+  createdCakes Cake[] // Les gâteaux créés par l'utilisateur
+}
+
+// Modèle représentant un gâteau dans l'application
+model Cake {
+  id          String   @id @default(cuid())
+  userId      String // ID de l'utilisateur créateur du gâteau
+  title       String
+  description String
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+
+  // Relation avec l'utilisateur créateur du gâteau
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relation avec les tags associés au gâteau
+  cakeTags CakeTag[] // Les tags associés au gâteau
+}
+
+// Modèle représentant une étiquette (tag) dans l'application
+model Tag {
+  id          String  @id @default(cuid())
+  name        String  @unique // Nom de l'étiquette (unique)
+  description String?
+
+  // Relation avec les gâteaux associés à l'étiquette
+  tagCakes CakeTag[] // Les gâteaux associés à l'étiquette
+}
+
+// Modèle représentant la table de liaison entre les gâteaux et les étiquettes
+model CakeTag {
+  id     String @id @default(cuid())
+  cakeId String
+  tagId  String
+
+  // Relations
+  cake Cake @relation(fields: [cakeId], references: [id], onDelete: Cascade) // Relation avec le gâteau associé
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade) // Relation avec l'étiquette associée
+
+  @@unique([cakeId, tagId]) // Assure l'unicité des associations gâteau-étiquette
+}
