@@ -10,7 +10,7 @@ export default async function Write() {
     <WriteCakeForm
       user={user}
       onSubmit={createCake}
-      // uploadImage={uploadImage}
+      uploadImage={uploadImage}
     />
   );
 }

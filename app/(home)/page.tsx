@@ -21,20 +21,20 @@ export default async function Home() {
   const cakes = await getLatestCakes(session?.user.id);
 
   const { resources: sneakers } = await cloudinary.api.resources_by_tag(
-    "nextjs-server-actions-upload-sneakers",
+    `${session?.user.id}-cake`,
     { context: true }
   );
 
   return (
     <div className="divide-y divide-muted">
-      <CldImage
+      {/* <CldImage
         width="600"
         height="600"
         src="https://res.cloudinary.com/dwa0nl1lb/image/upload/v1703214346/cld-sample-5.jpg"
         alt="test"
-      />
+  /> */}
       <ul className="grid gap-12 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12">
-        {sneakers.map((sneaker: CloudinaryResource) => {
+        {/* sneakers.map((sneaker: CloudinaryResource) => {
           return (
             <li
               key={sneaker.public_id}
@@ -57,12 +57,12 @@ export default async function Home() {
               )}
             </li>
           );
-        })}
+        }) */}
       </ul>
-      {JSON.stringify(session?.user.id)}
       {cakes.map((c) => {
         return <Cake cake={c} key={c.id} />;
       })}
+      test de home
     </div>
   );
 }

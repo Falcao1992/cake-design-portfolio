@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { UploadApiResponse, v2 as cloudinary } from "cloudinary";
+import { getAuthSession } from "@/lib/auth";
 
 export const uploadImage = async (formData: FormData): Promise<string> => {
   try {
+    const session = await getAuthSession();
     const file = formData.get("image") as File;
     const arrayBuffer = await file.arrayBuffer();
     const buffer = new Uint8Array(arrayBuffer);
@@ -14,7 +16,7 @@ export const uploadImage = async (formData: FormData): Promise<string> => {
         cloudinary.uploader
           .upload_stream(
             {
-              tags: ["nextjs-server-actions-upload-sneakers"],
+              tags: [`${session?.user.id}-cake`],
             },
             function (error, result) {
               if (error || !result?.url) {

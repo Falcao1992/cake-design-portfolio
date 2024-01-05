@@ -5,17 +5,19 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next
 First, run the development server:
 
 ```bash
-npm run prisma:seed
+npm run dev
 # for launch server dev
 npm run prisma:seed
 # for generate seed
 npx prisma studio
 # for interface DB
+npx prisma migrate dev
+# for launch migration
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Storage image :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+in cloudinary log with github.
 
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
