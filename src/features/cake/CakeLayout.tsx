@@ -3,11 +3,18 @@ import { CakeHome } from "../../query/cake.query";
 import clsx from "clsx";
 import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, PenIcon } from "lucide-react";
 import { formatDate } from "@/lib/date";
+import {
+  DropdownMenu,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+} from "@/components/ui/dropdown-menu";
 
 type CakeLayoutProps = PropsWithChildren<{
   user: CakeHome["user"];
+  pathName?: string;
   createdAt?: Date;
   classeName?: string;
   cakeId?: string;
@@ -19,20 +26,21 @@ export const CakeLayout = ({
   classeName,
   cakeId,
   children,
+  pathName,
 }: CakeLayoutProps) => {
   return (
     <div className={clsx("flex w-full flex-row items-center p-4", classeName)}>
-      <Avatar>
-        {user.image ? (
-          <AvatarImage src={user.image} alt={user.username} />
-        ) : null}
-        <AvatarFallback>
-          {user.username.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
-      </Avatar>
       <div className="ml-4 flex w-full flex-col gap-2">
-        <Link href={`/users/${user.id}`}>
+        <div>
           <div className="flex flex-row items-center gap-2">
+            <Avatar>
+              {user.image ? (
+                <AvatarImage src={user.image} alt={user.username} />
+              ) : null}
+              <AvatarFallback>
+                {user.username.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <p className="text-sm text-card-foreground mr-auto">
               {user.username}
             </p>
@@ -41,11 +49,26 @@ export const CakeLayout = ({
                 {formatDate(createdAt)}
               </p>
             ) : null}
-            <button>
-              <MoreHorizontal size={20} />
-            </button>
+
+            {!pathName?.includes("write") && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button>
+                    <MoreHorizontal size={20} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/write/${cakeId}`}>
+                      <PenIcon className="mr-2 h-4 w-4" />
+                      write
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
-        </Link>
+        </div>
         {children}
       </div>
     </div>

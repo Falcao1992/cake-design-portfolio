@@ -16,9 +16,14 @@ export const metadata: Metadata = {
 type LayoutProps = {
   children: React.ReactNode;
   modal?: React.ReactNode;
+  modalEdit?: React.ReactNode;
 };
 
-export default function RootLayout({ children, modal }: LayoutProps) {
+export default function RootLayout({
+  children,
+  modal,
+  modalEdit,
+}: LayoutProps) {
   return (
     <html lang="en" className="h-full">
       <body className={clsx(inter.className, "bg-background h-full")}>
@@ -26,6 +31,7 @@ export default function RootLayout({ children, modal }: LayoutProps) {
           <div className="flex flex-col h-full">
             <Header />
             {modal}
+            {modalEdit}
             <div className="flex-1 max-w-lg m-auto py-12 w-full">
               {children}
             </div>

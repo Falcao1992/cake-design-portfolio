@@ -1,7 +1,7 @@
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import CldImage from "@/src/cloudinary/CldImage";
-import { Cake } from "@/src/features/cake/Cake";
+import { CakeCard } from "@/src/features/cake/CakeCard";
 import { getLatestCakes } from "@/src/query/cake.query";
 import React from "react";
 import { v2 as cloudinary } from "cloudinary";
@@ -20,10 +20,10 @@ export default async function Home() {
 
   const cakes = await getLatestCakes(session?.user.id);
 
-  const { resources: sneakers } = await cloudinary.api.resources_by_tag(
+  /* const { resources: sneakers } = await cloudinary.api.resources_by_tag(
     `${session?.user.id}-cake`,
     { context: true }
-  );
+  ); */ // recuperer les image via un tag avec cloudinary
 
   return (
     <div className="divide-y divide-muted">
@@ -60,7 +60,7 @@ export default async function Home() {
         }) */}
       </ul>
       {cakes.map((c) => {
-        return <Cake cake={c} key={c.id} />;
+        return <CakeCard cake={c} key={c.id} />;
       })}
       test de home
     </div>

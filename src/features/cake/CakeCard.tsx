@@ -7,13 +7,20 @@ type cakeProps = {
   cake: CakeHome;
 };
 
-export const Cake = ({ cake }: cakeProps) => {
+export const CakeCard = ({ cake }: cakeProps) => {
   return (
     <CakeLayout user={cake.user} cakeId={cake.id} createdAt={cake.createdAt}>
       <Link href={`/cakes/${cake.id}`} className="text-sm text-foreground">
         {cake.description}
       </Link>
-      <div>{cake.imageUrl ? <img src={cake.imageUrl} /> : null}</div>
+      <div>
+        {cake.imageUrl ? (
+          <img
+            src={cake.imageUrl}
+            className="inset-0 w-full h-48 object-contain aspect-auto"
+          />
+        ) : null}
+      </div>
     </CakeLayout>
   );
 };

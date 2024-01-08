@@ -1,6 +1,39 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
+export const cakeSelectQuery = (userId?: string) =>
+  ({
+    id: true,
+    title: true,
+    description: true,
+    imageUrl: true,
+    createdAt: true,
+    user: {
+      select: {
+        image: true,
+        username: true,
+        id: true,
+      },
+    },
+    cakeTags: {
+      select: {
+        tagId: true,
+        cakeId: true,
+        tag: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
+    _count: {
+      select: {
+        cakeTags: true,
+      },
+    },
+  } satisfies Prisma.CakeSelect);
+
 export const getLatestCakes = (userId?: string) =>
   prisma.cake.findMany({
     where: {
@@ -10,36 +43,16 @@ export const getLatestCakes = (userId?: string) =>
     orderBy: {
       createdAt: "desc",
     },
+    select: cakeSelectQuery(userId),
+  });
+
+export const getCake = (id: string, userId?: string) =>
+  prisma.cake.findUnique({
+    where: {
+      id: id,
+    },
     select: {
-      id: true,
-      title: true,
-      description: true,
-      imageUrl: true,
-      createdAt: true,
-      user: {
-        select: {
-          image: true,
-          username: true,
-          id: true,
-        },
-      },
-      cakeTags: {
-        select: {
-          tagId: true,
-          cakeId: true,
-          tag: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      },
-      _count: {
-        select: {
-          cakeTags: true,
-        },
-      },
+      ...cakeSelectQuery(userId),
     },
   });
 

@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/form";
 import { CakeLayout } from "@/src/features/cake/CakeLayout";
 import { ContentTextArea } from "@/src/features/cake/ContentTextArea";
+import { CakeHome } from "@/src/query/cake.query";
 import { User } from "@prisma/client";
-import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { ChangeEvent, useEffect, useState } from "react";
 import { z } from "zod";
 
 const Schema = z.object({
@@ -26,24 +27,35 @@ export type WriteCakeFormProps = {
   user: User;
   onSubmit: (values: WriteCakeFormValues, imageUrl: string) => Promise<string>;
   uploadImage: (FormData: FormData) => Promise<string>;
+  cake?: CakeHome;
 };
 
 export const WriteCakeForm = ({
   user,
   onSubmit,
   uploadImage,
+  cake,
 }: WriteCakeFormProps) => {
+  const defaultValues = {
+    description: cake?.description || "",
+    title: cake?.title || "",
+  };
+
   const form = useZodForm({
     schema: Schema,
+    defaultValues: defaultValues,
   });
   const router = useRouter();
-
+  const pathname = usePathname();
+  
   const [formData, setFormData] = useState<FormData | null>(null);
   const [imageUrl, setImageUrl] = useState<string | null>(null); // État pour stocker l'URL de l'image temporaire
+  const [file, setFile] = useState<File>();
 
   const handleChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
       const file: File = e.target.files[0];
+      setFile(file);
 
       const fileUrl = URL.createObjectURL(file); // Créer une URL objet temporaire pour le fichier
       setImageUrl(fileUrl); // Mettre à jour l'URL de l'image temporaire
@@ -54,8 +66,16 @@ export const WriteCakeForm = ({
     }
   };
 
+  useEffect(() => {
+    if (cake?.imageUrl) {
+      setImageUrl(cake.imageUrl);
+    }
+  }, [cake]);
+
+  console.log("file", file);
+
   return (
-    <CakeLayout user={user}>
+    <CakeLayout user={user} pathName={pathname || undefined}>
       <Form
         form={form}
         onSubmit={async (values) => {
@@ -73,11 +93,11 @@ export const WriteCakeForm = ({
             try {
               const cakeId = await onSubmit(values, imageUrl);
               console.log("if image url => cakeId", cakeId);
-              /* if (cakeId) {
+              if (cakeId) {
                 window.location.href = `${window.location.origin}/cakes/${cakeId}`;
                 router.push(`/cakes/${cakeId}`);
                 router.refresh();
-              }*/
+              }
             } catch (error) {
               console.error("Error submitting cake:", error);
             }
@@ -110,18 +130,26 @@ export const WriteCakeForm = ({
             <img
               src={imageUrl}
               alt="Selected Cake"
-              className="max-w-full h-auto"
+              className="max-w-full w-20"
             />
           </div>
         )}
 
         <input
           id="image"
-          className="block w-full border-slate-400 rounded focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          className="hidden"
           type="file"
           name="image"
           onChange={handleChangeFile}
+          placeholder="blalla"
         />
+        <label htmlFor="image">
+          {file?.name
+            ? file.name
+            : cake?.imageUrl
+            ? "clicke me for replace image"
+            : " click me for choose a image"}
+        </label>
 
         <div className="flex w-full justify-end">
           <Button size="sm">Create Cake</Button>
