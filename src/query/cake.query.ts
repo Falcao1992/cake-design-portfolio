@@ -56,4 +56,5 @@ export const getCake = (id: string, userId?: string) =>
     },
   });
 
-export type CakeHome = Prisma.PromiseReturnType<typeof getLatestCakes>[number]; // [number] is used for unwrap cakes's arrray
+export type CakeType = Prisma.PromiseReturnType<typeof getLatestCakes>[number]; // [number] is used for unwrap cakes's arrray
+// export type CakeTest = Prisma.cakeU

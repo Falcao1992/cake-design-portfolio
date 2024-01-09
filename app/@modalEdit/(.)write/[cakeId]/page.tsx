@@ -1,5 +1,5 @@
 import { uploadImage } from "@/app/write/upload-image.action";
-import { createCake } from "@/app/write/write-cake.action";
+import { createCake, updateCake } from "@/app/write/write-cake.action";
 import { getUser } from "@/src/query/user.query";
 import React from "react";
 import { EditModal } from "./EditModal";
@@ -16,20 +16,15 @@ export default async function ModalEdit({
   const user = await getUser();
   const cake = await getCake(params?.cakeId, user.id);
 
-  console.log("params", params?.cakeId);
-  console.log("user.id", user.id);
-
   if (!cake) {
     return NotFound();
   }
-
-  console.log("cake", cake);
 
   return (
     <div>
       <EditModal
         user={user}
-        onSubmit={createCake}
+        onSubmit={updateCake}
         uploadImage={uploadImage}
         cake={cake}
       />

@@ -8,27 +8,21 @@ import {
   FormMessage,
   useZodForm,
 } from "@/components/ui/form";
+import {
+  WriteCakeFormProps,
+  WriteCakeFormValues,
+} from "@/lib/type/cakes/writeCake/writeCake";
+import { WriteCakeFormSchema } from "@/lib/zod/cakes/writeCake/writeCakeFormSchema";
 import { CakeLayout } from "@/src/features/cake/CakeLayout";
 import { ContentTextArea } from "@/src/features/cake/ContentTextArea";
-import { CakeHome } from "@/src/query/cake.query";
-import { User } from "@prisma/client";
+import { CakeType } from "@/src/query/cake.query";
 import { usePathname, useRouter } from "next/navigation";
-import { ChangeEvent, useEffect, useState } from "react";
-import { z } from "zod";
+import { ChangeEvent, useState } from "react";
 
-const Schema = z.object({
-  description: z.string().min(1).max(500),
-  title: z.string().min(1).max(20),
+const getInitialValues = (cake?: CakeType) => ({
+  description: cake?.description || "",
+  title: cake?.title || "",
 });
-
-export type WriteCakeFormValues = z.infer<typeof Schema>;
-
-export type WriteCakeFormProps = {
-  user: User;
-  onSubmit: (values: WriteCakeFormValues, imageUrl: string) => Promise<string>;
-  uploadImage: (FormData: FormData) => Promise<string>;
-  cake?: CakeHome;
-};
 
 export const WriteCakeForm = ({
   user,
@@ -36,21 +30,20 @@ export const WriteCakeForm = ({
   uploadImage,
   cake,
 }: WriteCakeFormProps) => {
-  const defaultValues = {
-    description: cake?.description || "",
-    title: cake?.title || "",
-  };
+  const defaultValues = getInitialValues(cake);
 
-  const form = useZodForm({
-    schema: Schema,
-    defaultValues: defaultValues,
-  });
+  const [formData, setFormData] = useState<FormData | null>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(
+    cake?.imageUrl || null
+  ); // État pour stocker l'URL de l'image temporaire
+  const [file, setFile] = useState<File>();
+
   const router = useRouter();
   const pathname = usePathname();
-  
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); // État pour stocker l'URL de l'image temporaire
-  const [file, setFile] = useState<File>();
+  const form = useZodForm({
+    schema: WriteCakeFormSchema,
+    defaultValues: defaultValues,
+  });
 
   const handleChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) {
@@ -66,41 +59,44 @@ export const WriteCakeForm = ({
     }
   };
 
-  useEffect(() => {
-    if (cake?.imageUrl) {
-      setImageUrl(cake.imageUrl);
-    }
-  }, [cake]);
+  const handleImageUpload = async () => {
+    if (!formData && !imageUrl) return "";
 
-  console.log("file", file);
+    if (formData) {
+      try {
+        const imgUrl = await uploadImage(formData);
+        console.log("Uploaded Image URL:", imgUrl);
+        return imgUrl;
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        return "";
+      }
+    }
+
+    return imageUrl || "";
+  };
+
+  const handleSubmit = async (values: WriteCakeFormValues, imgUrl: string) => {
+    try {
+      const cakeId = await onSubmit(values, imgUrl, cake?.id);
+      if (cakeId) {
+        window.location.href = `${window.location.origin}/cakes/${cakeId}`;
+        router.push(`/cakes/${cakeId}`);
+        router.refresh();
+      }
+    } catch (error) {
+      console.error("Error submitting cake:", error);
+    }
+  };
 
   return (
     <CakeLayout user={user} pathName={pathname || undefined}>
       <Form
         form={form}
         onSubmit={async (values) => {
-          let imageUrl = "";
-          if (formData) {
-            try {
-              imageUrl = await uploadImage(formData);
-              console.log("Uploaded Image URL:", imageUrl);
-            } catch (error) {
-              console.error("Error uploading image:", error);
-            }
-          }
-
-          if (imageUrl) {
-            try {
-              const cakeId = await onSubmit(values, imageUrl);
-              console.log("if image url => cakeId", cakeId);
-              if (cakeId) {
-                window.location.href = `${window.location.origin}/cakes/${cakeId}`;
-                router.push(`/cakes/${cakeId}`);
-                router.refresh();
-              }
-            } catch (error) {
-              console.error("Error submitting cake:", error);
-            }
+          const imgUrl = await handleImageUpload();
+          if (imgUrl) {
+            handleSubmit(values, imgUrl);
           }
         }}
       >
@@ -125,7 +121,7 @@ export const WriteCakeForm = ({
           )}
         />
 
-        {imageUrl && ( // Afficher l'image temporaire si l'URL est disponible
+        {imageUrl && (
           <div className="my-4">
             <img
               src={imageUrl}

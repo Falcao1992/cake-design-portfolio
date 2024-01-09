@@ -1,12 +1,13 @@
 "use client";
 
-import { WriteCakeForm, WriteCakeFormProps } from "@/app/write/WriteCakeForm";
+import { WriteCakeForm } from "@/app/write/WriteCakeForm";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { WriteCakeFormProps } from "@/lib/type/cakes/writeCake/writeCake";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 

@@ -8,7 +8,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { usePathname, useRouter } from "next/navigation";
-import { WriteCakeForm, WriteCakeFormProps } from "@/app/write/WriteCakeForm";
+import { WriteCakeForm } from "@/app/write/WriteCakeForm";
+import { WriteCakeFormProps } from "@/lib/type/cakes/writeCake/writeCake";
 
 export const EditModal = ({
   user,

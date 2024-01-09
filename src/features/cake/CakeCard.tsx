@@ -1,15 +1,16 @@
 import React from "react";
-import { CakeHome } from "../../query/cake.query";
+import { CakeType } from "../../query/cake.query";
 import Link from "next/link";
 import { CakeLayout } from "./CakeLayout";
 
 type cakeProps = {
-  cake: CakeHome;
+  cake: CakeType;
 };
 
 export const CakeCard = ({ cake }: cakeProps) => {
   return (
     <CakeLayout user={cake.user} cakeId={cake.id} createdAt={cake.createdAt}>
+      <h5>{cake.title}</h5>
       <Link href={`/cakes/${cake.id}`} className="text-sm text-foreground">
         {cake.description}
       </Link>
