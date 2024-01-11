@@ -16,8 +16,13 @@ import { WriteCakeFormSchema } from "@/lib/zod/cakes/writeCake/writeCakeFormSche
 import { CakeLayout } from "@/src/features/cake/CakeLayout";
 import { ContentTextArea } from "@/src/features/cake/ContentTextArea";
 import { CakeType } from "@/src/query/cake.query";
+import { UploadApiResponse } from "cloudinary";
 import { usePathname, useRouter } from "next/navigation";
 import { ChangeEvent, useState } from "react";
+import { createImage, deleteImage } from "./image.action";
+import { ImageDetailsType } from "@/lib/type/images/imageDetailsType";
+import { DeleteIcon, X } from "lucide-react";
+import { destroyImage } from "./upload-image.action";
 
 const getInitialValues = (cake?: CakeType) => ({
   description: cake?.description || "",
@@ -26,17 +31,17 @@ const getInitialValues = (cake?: CakeType) => ({
 
 export const WriteCakeForm = ({
   user,
-  onSubmit,
+  createCake,
   uploadImage,
   cake,
 }: WriteCakeFormProps) => {
   const defaultValues = getInitialValues(cake);
 
-  const [formData, setFormData] = useState<FormData | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(
+  /* const [formData, setFormData] = useState<FormData | null>(null);
+  const [imageUrl, setImageUrl] = useState<string[] | null>(
     cake?.imageUrl || null
-  ); // État pour stocker l'URL de l'image temporaire
-  const [file, setFile] = useState<File>();
+  ); // État pour stocker l'URL de l'image temporaire */
+  const [files, setFiles] = useState<File[]>([]);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -46,47 +51,75 @@ export const WriteCakeForm = ({
   });
 
   const handleChangeFile = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      const file: File = e.target.files[0];
-      setFile(file);
-
-      const fileUrl = URL.createObjectURL(file); // Créer une URL objet temporaire pour le fichier
-      setImageUrl(fileUrl); // Mettre à jour l'URL de l'image temporaire
-
-      const formData = new FormData();
-      formData.append("image", file);
-      setFormData(formData);
+    if (e.target.files) {
+      const newFiles: File[] = Array.from(e.target.files);
+      setFiles((prevFiles) => [...prevFiles, ...newFiles]);
     }
   };
 
-  const handleImageUpload = async () => {
-    if (!formData && !imageUrl) return "";
+  const handleRemoveImage = (index: number) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
 
-    if (formData) {
+  const handleRemoveImageFromCloudinary = async (img: ImageDetailsType) => {
+    // const imgDestroyed = await destroyImage(img.publicId);
+    console.log("img", img);
+
+    if (img.id) {
+      const imgDeleteInDb = await deleteImage(img?.id);
+      console.log("image delte in db", imgDeleteInDb);
+    }
+
+    // console.log("imgdstroyed l'image a bien été supprimer", imgDestroyed);
+  };
+
+  const handleImagesUpload = async () => {
+    if (files.length === 0) return [];
+
+    const imgsDetails: UploadApiResponse[] = [];
+
+    for (const file of files) {
       try {
-        const imgUrl = await uploadImage(formData);
-        console.log("Uploaded Image URL:", imgUrl);
-        return imgUrl;
+        const formData = new FormData();
+        formData.append("image", file);
+        const imgDetails = await uploadImage(formData);
+        imgsDetails.push(imgDetails);
       } catch (error) {
         console.error("Error uploading image:", error);
-        return "";
       }
     }
 
-    return imageUrl || "";
+    console.log("imgsDetails", imgsDetails);
+
+    return imgsDetails;
   };
 
-  const handleSubmit = async (values: WriteCakeFormValues, imgUrl: string) => {
-    try {
-      const cakeId = await onSubmit(values, imgUrl, cake?.id);
-      if (cakeId) {
-        window.location.href = `${window.location.origin}/cakes/${cakeId}`;
-        router.push(`/cakes/${cakeId}`);
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Error submitting cake:", error);
+  const createImageInDb = async (imgs: UploadApiResponse[], cakeId: string) => {
+    if (!imgs) {
+      console.log("pas d'image");
+      return;
     }
+
+    const imgsResponse = [];
+
+    for (const img of imgs) {
+      try {
+        let imgObject: Omit<ImageDetailsType, "cakeId"> = {
+          url: img.url,
+          secureUrl: img.secure_url,
+          publicId: img.public_id,
+          signature: img.signature,
+          width: img.width,
+          height: img.height,
+        };
+        const imgResponse = await createImage(imgObject, cakeId);
+        imgsResponse.push(imgResponse);
+      } catch (error) {
+        console.error("Error uploading image:", error);
+      }
+    }
+
+    return imgsResponse;
   };
 
   return (
@@ -94,10 +127,17 @@ export const WriteCakeForm = ({
       <Form
         form={form}
         onSubmit={async (values) => {
-          const imgUrl = await handleImageUpload();
-          if (imgUrl) {
-            handleSubmit(values, imgUrl);
-          }
+          const imgsDetails = await handleImagesUpload(); // creer les images et renvoie les données de la photo en format cloudinary compley
+          const cakeCreatedId = await createCake(values); // creer le gateaux et renvoi l'id du gateaux
+
+          const imgCreatedinDb = await createImageInDb(
+            imgsDetails,
+            cakeCreatedId
+          ); // creer les images dans la db et renvoi les details de l'image
+
+          console.log("imgsDetails", imgsDetails);
+          console.log("cakeCreatedId", cakeCreatedId);
+          console.log("imgCreatedinDb", imgCreatedinDb);
         }}
       >
         <FormField
@@ -121,31 +161,60 @@ export const WriteCakeForm = ({
           )}
         />
 
-        {imageUrl && (
-          <div className="my-4">
-            <img
-              src={imageUrl}
-              alt="Selected Cake"
-              className="max-w-full w-20"
-            />
-          </div>
-        )}
+        <div className="flex gap-8">
+          {files.map((file, index) => (
+            <div key={index} className="relative">
+              <img
+                src={URL.createObjectURL(file)}
+                alt={`Selected Cake ${index + 1}`}
+                className="max-w-full w-16"
+              />
+              <button
+                type="button"
+                className="absolute top-0 right-0 p-2 bg-red-500 text-white"
+                onClick={() => handleRemoveImage(index)}
+              >
+                <X />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex gap-8">
+          {cake?.images &&
+            cake.images.map((img, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={img.url}
+                  alt={`Selected Cake ${index + 1}`}
+                  className="max-w-full w-16"
+                />
+                <button
+                  type="button"
+                  className="absolute top-0 right-0 p-2 bg-red-500 text-white"
+                  onClick={() => handleRemoveImageFromCloudinary(img)}
+                >
+                  <X />
+                </button>
+              </div>
+            ))}
+        </div>
 
         <input
           id="image"
-          className="hidden"
+          // className="hidden"
           type="file"
           name="image"
           onChange={handleChangeFile}
           placeholder="blalla"
         />
-        <label htmlFor="image">
+        {/* <label htmlFor="image">
           {file?.name
             ? file.name
             : cake?.imageUrl
             ? "clicke me for replace image"
             : " click me for choose a image"}
-        </label>
+          </label> */}
 
         <div className="flex w-full justify-end">
           <Button size="sm">Create Cake</Button>

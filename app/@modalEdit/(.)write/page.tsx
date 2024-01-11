@@ -9,7 +9,11 @@ export default async function Modal() {
 
   return (
     <div>
-      <WriteModal user={user} onSubmit={createCake} uploadImage={uploadImage} />
+      <WriteModal
+        user={user}
+        createCake={createCake}
+        uploadImage={uploadImage}
+      />
     </div>
   );
 }

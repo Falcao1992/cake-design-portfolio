@@ -13,7 +13,7 @@ import { WriteCakeFormProps } from "@/lib/type/cakes/writeCake/writeCake";
 
 export const EditModal = ({
   user,
-  onSubmit,
+  createCake,
   uploadImage,
   cake,
 }: WriteCakeFormProps) => {
@@ -32,7 +32,7 @@ export const EditModal = ({
         <DialogDescription>Chnager votre Cake</DialogDescription>
         <WriteCakeForm
           user={user}
-          onSubmit={onSubmit}
+          createCake={createCake}
           uploadImage={uploadImage}
           cake={cake}
         />

@@ -20,6 +20,8 @@ export default async function Home() {
 
   const cakes = await getLatestCakes(session?.user.id);
 
+  console.log("cakes", cakes);
+
   /* const { resources: sneakers } = await cloudinary.api.resources_by_tag(
     `${session?.user.id}-cake`,
     { context: true }

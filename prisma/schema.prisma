@@ -71,7 +71,6 @@ model Cake {
   userId      String // ID de l'utilisateur créateur du gâteau
   title       String
   description String
-  imageUrl    String?
   createdAt   DateTime @default(now())
 
   // Relation avec l'utilisateur créateur du gâteau
@@ -79,6 +78,23 @@ model Cake {
 
   // Relation avec les tags associés au gâteau
   cakeTags CakeTag[] // Les tags associés au gâteau
+  images   Image[]
+}
+
+// Modèle représentant les images liées à un gâteau
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  secureUrl String
+  publicId  String
+  signature String
+  width     Int
+  height    Int
+  createdAt DateTime @default(now())
+  cakeId    String
+
+  // Relation avec le gâteau associé
+  cake Cake @relation(fields: [cakeId], references: [id], onDelete: Cascade)
 }
 
 // Modèle représentant une étiquette (tag) dans l'application

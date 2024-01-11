@@ -6,7 +6,18 @@ export const cakeSelectQuery = (userId?: string) =>
     id: true,
     title: true,
     description: true,
-    imageUrl: true,
+    images: {
+      select: {
+        id: true,
+        url: true,
+        secureUrl: true,
+        publicId: true,
+        signature: true,
+        width: true,
+        height: true,
+        cakeId: true,
+      },
+    },
     createdAt: true,
     user: {
       select: {

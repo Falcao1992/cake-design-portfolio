@@ -1,5 +1,4 @@
 import React, { PropsWithChildren } from "react";
-import { CakeHome } from "../../query/cake.query";
 import clsx from "clsx";
 import { AvatarFallback, AvatarImage, Avatar } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -11,9 +10,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
 } from "@/components/ui/dropdown-menu";
+import { CakeType } from "@/src/query/cake.query";
+import { deleteCache } from "next/dist/server/lib/render-server";
+import { deleteCake } from "@/app/write/write-cake.action";
+import { DeleteButton } from "./DeleteButton";
 
 type CakeLayoutProps = PropsWithChildren<{
-  user: CakeHome["user"];
+  user: CakeType["user"];
   pathName?: string;
   createdAt?: Date;
   classeName?: string;
@@ -63,6 +66,13 @@ export const CakeLayout = ({
                       <PenIcon className="mr-2 h-4 w-4" />
                       write
                     </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    {cakeId ? (
+                      <DeleteButton userId={user.id} cakeId={cakeId} />
+                    ) : (
+                      <div>salut les gens</div>
+                    )}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

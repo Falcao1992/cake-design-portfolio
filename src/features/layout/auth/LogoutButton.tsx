@@ -8,6 +8,7 @@ import { useTransition } from "react";
 
 export const DropdownMenuItemLogout = () => {
   const [isPending, startTransition] = useTransition();
+  
   return (
     <DropdownMenuItem
       onClick={() => {

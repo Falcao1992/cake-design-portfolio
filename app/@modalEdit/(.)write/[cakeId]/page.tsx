@@ -24,7 +24,7 @@ export default async function ModalEdit({
     <div>
       <EditModal
         user={user}
-        onSubmit={updateCake}
+        createCake={updateCake}
         uploadImage={uploadImage}
         cake={cake}
       />

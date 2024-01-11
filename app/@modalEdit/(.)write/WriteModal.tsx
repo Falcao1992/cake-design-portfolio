@@ -13,7 +13,7 @@ import React from "react";
 
 export const WriteModal = ({
   user,
-  onSubmit,
+  createCake,
   uploadImage,
 }: WriteCakeFormProps) => {
   const router = useRouter();
@@ -31,7 +31,7 @@ export const WriteModal = ({
         <DialogDescription>Creer votre Cake</DialogDescription>
         <WriteCakeForm
           user={user}
-          onSubmit={onSubmit}
+          createCake={createCake}
           uploadImage={uploadImage}
         />
       </DialogContent>
